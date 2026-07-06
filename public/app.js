@@ -7,8 +7,7 @@ const CACHE_KEY = "sanduo-85-last-snapshot";
 const SETTINGS_KEY = "sanduo-85-settings";
 const REFRESH_MS = 30_000;
 const TABS = ["bus", "shuttle", "metro"];
-const TAB_EXIT_MS = 120;
-const TAB_ENTER_MS = 220;
+const TAB_PUSH_MS = 280;
 const DESTINATION_LABEL = "85 大樓";
 const DESTINATION_ADDRESS = "高雄市苓雅區自強三路 3 號";
 const SHUTTLE_LOOKAHEAD_COUNT = 5;
@@ -794,6 +793,7 @@ const els = {
   shuttleSummary: document.querySelector("#shuttleSummary"),
   sourceStatus: document.querySelector("#sourceStatus"),
   tabButtons: document.querySelectorAll(".tab-button"),
+  tabStage: document.querySelector("#tabStage"),
   tripList: document.querySelector("#tripList"),
   walkMinutes: document.querySelector("#walkMinutes"),
   walkValue: document.querySelector("#walkValue")
@@ -852,7 +852,7 @@ function switchTab(tab, options = {}) {
   const shouldAnimate = !options.replace && !prefersReducedMotion();
   if (previousTab === activeTab) return;
 
-  if (state.tabAnimating && shouldAnimate) return;
+  if (state.tabAnimating) return;
 
   if (!shouldAnimate) {
     applyTab(activeTab);
@@ -862,28 +862,31 @@ function switchTab(tab, options = {}) {
 
   const previousPanel = panelForTab(previousTab);
   const nextPanel = panelForTab(activeTab);
-  if (!previousPanel || !nextPanel) {
+  if (!previousPanel || !nextPanel || !els.tabStage) {
     applyTab(activeTab);
     updateTabUrl(activeTab, options);
     return;
   }
 
+  const direction = options.direction || (TABS.indexOf(activeTab) > TABS.indexOf(previousTab) ? 1 : -1);
+  const startHeight = previousPanel.offsetHeight;
+
   state.tabAnimating = true;
-  els.appShell.classList.add("tab-transitioning");
+  state.activeTab = activeTab;
+  if (activeTab === "metro") renderMetro();
   updateTabButtons(activeTab);
-  previousPanel.classList.add("leaving");
+  updateTabUrl(activeTab, options);
+
+  nextPanel.hidden = false;
+  const endHeight = nextPanel.offsetHeight;
+
+  preparePushAnimation(previousPanel, nextPanel, direction, startHeight, endHeight);
 
   window.setTimeout(() => {
-    previousPanel.classList.remove("leaving");
-    applyTab(activeTab);
-    updateTabUrl(activeTab, options);
-    animateActivePanel(previousTab, activeTab, options.direction);
-
-    window.setTimeout(() => {
-      state.tabAnimating = false;
-      els.appShell.classList.remove("tab-transitioning");
-    }, TAB_ENTER_MS);
-  }, TAB_EXIT_MS);
+    previousPanel.hidden = true;
+    nextPanel.hidden = false;
+    finishPushAnimation(previousPanel, nextPanel);
+  }, TAB_PUSH_MS);
 }
 
 function applyTab(activeTab) {
@@ -948,23 +951,29 @@ function tabFromHash(hash) {
   return TABS.includes(key) ? key : "bus";
 }
 
-function animateActivePanel(previousTab, activeTab, direction) {
-  if (previousTab === activeTab) return;
-  const panel = panelForTab(activeTab);
-  if (!panel) return;
-  const inferredDirection = direction || (TABS.indexOf(activeTab) > TABS.indexOf(previousTab) ? 1 : -1);
-  panel.classList.remove("enter-from-left", "enter-from-right");
-  panel.getBoundingClientRect();
-  panel.classList.add(inferredDirection > 0 ? "enter-from-right" : "enter-from-left");
-  window.setTimeout(() => {
-    panel.classList.remove("enter-from-left", "enter-from-right");
-  }, 240);
-}
-
 function panelForTab(tab) {
   if (tab === "shuttle") return els.shuttlePanel;
   if (tab === "metro") return els.metroPanel;
   return els.busPanel;
+}
+
+function preparePushAnimation(previousPanel, nextPanel, direction, startHeight, endHeight) {
+  els.appShell.classList.add("tab-transitioning");
+  els.tabStage.classList.add("animating", direction > 0 ? "push-forward" : "push-back");
+  els.tabStage.style.height = `${startHeight}px`;
+  previousPanel.classList.add("push-leave");
+  nextPanel.classList.add("push-enter");
+  els.tabStage.getBoundingClientRect();
+  els.tabStage.style.height = `${endHeight}px`;
+}
+
+function finishPushAnimation(previousPanel, nextPanel) {
+  previousPanel.classList.remove("push-leave");
+  nextPanel.classList.remove("push-enter");
+  els.tabStage.classList.remove("animating", "push-forward", "push-back");
+  els.tabStage.style.removeProperty("height");
+  els.appShell.classList.remove("tab-transitioning");
+  state.tabAnimating = false;
 }
 
 function updateSettingsFromControls() {

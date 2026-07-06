@@ -53,7 +53,8 @@
       <button class="tab-button" id="metroTabButton" type="button" data-tab="metro" aria-controls="metroPanel" aria-selected="false">捷運</button>
     </nav>
 
-    <section class="tab-panel" id="busPanel" aria-labelledby="busTabButton">
+    <div class="tab-stage" id="tabStage">
+      <section class="tab-panel" id="busPanel" aria-labelledby="busTabButton">
       <section class="mode-toggle" aria-label="85 公車方向">
         <button class="mode-button active" id="busOutboundButton" type="button" data-bus-mode="outbound" aria-pressed="true">去 85</button>
         <button class="mode-button" id="busReturnButton" type="button" data-bus-mode="return" aria-pressed="false">回三多</button>
@@ -104,9 +105,9 @@
           <li>已排除綠1，因為從三多商圈上車的方向不會先到 85 大樓。</li>
         </ul>
       </section>
-    </section>
+      </section>
 
-    <section class="tab-panel" id="shuttlePanel" aria-labelledby="shuttleTabButton" hidden>
+      <section class="tab-panel" id="shuttlePanel" aria-labelledby="shuttleTabButton" hidden>
       <section class="mode-toggle" aria-label="往後驛站方向">
         <button class="mode-button active" id="commuteOutboundButton" type="button" data-commute-mode="outbound" aria-pressed="true">往後驛站</button>
         <button class="mode-button" id="commuteReturnButton" type="button" data-commute-mode="return" aria-pressed="false">往高醫</button>
@@ -153,9 +154,9 @@
           <li>接駁車使用你提供的固定時刻表；公車使用即時到站資料。</li>
         </ul>
       </section>
-    </section>
+      </section>
 
-    <section class="tab-panel" id="metroPanel" aria-labelledby="metroTabButton" hidden>
+      <section class="tab-panel" id="metroPanel" aria-labelledby="metroTabButton" hidden>
       <section class="mode-toggle" aria-label="捷運方向">
         <button class="mode-button active" id="metroToSanduoButton" type="button" data-metro-mode="toSanduo" aria-pressed="true">後驛→三多</button>
         <button class="mode-button" id="metroToHouyiButton" type="button" data-metro-mode="toHouyi" aria-pressed="false">三多→後驛</button>
@@ -202,7 +203,8 @@
           <li>高捷公告建議提前 2-3 分鐘進站乘車；特殊日或颱風停班期間不適用。</li>
         </ul>
       </section>
-    </section>
+      </section>
+    </div>
   </main>
 
   <script src="runtime-config.js"></script>

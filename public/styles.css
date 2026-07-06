@@ -95,28 +95,47 @@ input {
   transform: scale(0.98);
 }
 
+.tab-stage {
+  position: relative;
+  overflow-x: hidden;
+}
+
+.tab-stage.animating {
+  overflow: hidden;
+  transition: height 0.28s cubic-bezier(0.2, 0, 0, 1);
+}
+
 .tab-panel {
   transform: translateX(0);
-  transition: opacity 0.18s ease;
   backface-visibility: hidden;
   touch-action: pan-y;
-  will-change: opacity;
 }
 
 .app-shell.tab-transitioning .tab-panel {
   pointer-events: none;
 }
 
-.tab-panel.enter-from-right {
-  animation: tab-enter-right 0.22s cubic-bezier(0.2, 0, 0, 1);
+.tab-stage.animating .tab-panel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  will-change: transform, opacity;
 }
 
-.tab-panel.enter-from-left {
-  animation: tab-enter-left 0.22s cubic-bezier(0.2, 0, 0, 1);
+.tab-stage.push-forward .push-leave {
+  animation: push-leave-forward 0.28s cubic-bezier(0.2, 0, 0, 1) both;
 }
 
-.tab-panel.leaving {
-  animation: tab-leave 0.12s ease both;
+.tab-stage.push-forward .push-enter {
+  animation: push-enter-forward 0.28s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+.tab-stage.push-back .push-leave {
+  animation: push-leave-back 0.28s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+.tab-stage.push-back .push-enter {
+  animation: push-enter-back 0.28s cubic-bezier(0.2, 0, 0, 1) both;
 }
 
 .tab-panel[hidden] {
@@ -709,39 +728,51 @@ button:disabled {
   }
 }
 
-@keyframes tab-leave {
+@keyframes push-enter-forward {
   from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    opacity: 0.94;
+    transform: translateX(104%) scale(0.985);
   }
 
   to {
-    opacity: 0;
-    transform: translateY(3px) scale(0.995);
+    opacity: 1;
+    transform: translateX(0) scale(1);
   }
 }
 
-@keyframes tab-enter-right {
+@keyframes push-leave-forward {
   from {
-    opacity: 0;
-    transform: translateY(5px) scale(0.998);
+    opacity: 1;
+    transform: translateX(0) scale(1);
   }
 
   to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    opacity: 0.7;
+    transform: translateX(-34%) scale(0.985);
   }
 }
 
-@keyframes tab-enter-left {
+@keyframes push-enter-back {
   from {
-    opacity: 0;
-    transform: translateY(5px) scale(0.998);
+    opacity: 0.94;
+    transform: translateX(-104%) scale(0.985);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes push-leave-back {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  to {
+    opacity: 0.7;
+    transform: translateX(34%) scale(0.985);
   }
 }
 
@@ -752,10 +783,13 @@ button:disabled {
     transition: none;
   }
 
-  .tab-panel.enter-from-left,
-  .tab-panel.enter-from-right,
-  .tab-panel.leaving {
+  .tab-stage.animating,
+  .tab-stage.push-forward .push-leave,
+  .tab-stage.push-forward .push-enter,
+  .tab-stage.push-back .push-leave,
+  .tab-stage.push-back .push-enter {
     animation: none;
+    transition: none;
   }
 }
 
