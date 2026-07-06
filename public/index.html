@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="description" content="捷運三多商圈站到 85 大樓門口地址的即時公車銜接判斷 PWA">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <title>三多轉 85 公車</title>
+</head>
+
+<body>
+  <main class="app-shell">
+    <header class="topbar" aria-label="目前路線">
+      <div>
+        <p class="eyebrow">R8 三多商圈</p>
+        <h1>轉乘 85 大樓</h1>
+        <p class="address-line">自強三路 3 號</p>
+      </div>
+      <button class="icon-button" id="settingsButton" type="button" aria-expanded="false" aria-controls="settingsPanel" aria-label="判斷設定" title="判斷設定">
+        <span aria-hidden="true">⚙</span>
+      </button>
+    </header>
+
+    <section class="settings-panel" id="settingsPanel" aria-label="判斷設定" hidden>
+      <label class="control-field" for="walkMinutes">
+        <span>走到站牌</span>
+        <output id="walkValue">4 分</output>
+        <input id="walkMinutes" type="range" min="2" max="9" step="1" value="4">
+      </label>
+      <label class="control-field" for="bufferMinutes">
+        <span>安全緩衝</span>
+        <output id="bufferValue">1 分</output>
+        <input id="bufferMinutes" type="range" min="0" max="4" step="1" value="1">
+      </label>
+      <label class="toggle-field" for="autoRefreshToggle">
+        <span>
+          <strong>自動更新</strong>
+          <small>每 30 秒更新即時資料</small>
+        </span>
+        <input id="autoRefreshToggle" type="checkbox" checked>
+      </label>
+    </section>
+
+      <div class="pull-refresh" id="pullRefresh" aria-live="polite"></div>
+
+    <nav class="tabs" aria-label="功能切換">
+      <button class="tab-button active" id="busTabButton" type="button" data-tab="bus" aria-controls="busPanel" aria-selected="true">85 公車</button>
+      <button class="tab-button" id="shuttleTabButton" type="button" data-tab="shuttle" aria-controls="shuttlePanel" aria-selected="false">往後驛站</button>
+      <button class="tab-button" id="metroTabButton" type="button" data-tab="metro" aria-controls="metroPanel" aria-selected="false">捷運</button>
+    </nav>
+
+    <section class="tab-panel" id="busPanel" aria-labelledby="busTabButton">
+      <section class="mode-toggle" aria-label="85 公車方向">
+        <button class="mode-button active" id="busOutboundButton" type="button" data-bus-mode="outbound" aria-pressed="true">去 85</button>
+        <button class="mode-button" id="busReturnButton" type="button" data-bus-mode="return" aria-pressed="false">回三多</button>
+      </section>
+
+      <section class="status-panel" id="decisionPanel" aria-live="polite">
+        <div class="clock-row">
+          <span id="clock">--:--:--</span>
+          <span id="sourceStatus">尚未更新</span>
+        </div>
+        <p class="decision-label" id="decisionLabel">正在查詢</p>
+        <h2 id="decisionTitle">讀取即時到站資料</h2>
+        <p class="time-summary" id="decisionTimeSummary">等待即時資料</p>
+        <div class="exit-callout" id="exitCallout" hidden>
+          <span class="exit-kicker" id="exitKicker">建議出口</span>
+          <strong id="exitLabel">--</strong>
+          <span id="exitMeta">--</span>
+        </div>
+        <p class="decision-copy" id="decisionCopy">正在計算從捷運出口走到站牌後，哪班車最穩。</p>
+        <div class="recommendation" id="recommendation" hidden>
+          <span class="route-pill" id="bestRoute">--</span>
+          <span id="bestMeta">--</span>
+        </div>
+      </section>
+
+      <section class="board" aria-labelledby="boardTitle">
+        <div class="section-heading">
+          <h2 id="boardTitle">可銜接班次</h2>
+          <span id="nextRefresh">每 30 秒更新</span>
+        </div>
+        <div class="trip-list" id="tripList">
+          <article class="trip-row skeleton">
+            <div></div>
+            <div></div>
+            <div></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="details" aria-labelledby="detailsTitle">
+        <h2 id="detailsTitle">追蹤站牌</h2>
+        <ul>
+          <li>目的地：802 高雄市苓雅區意誠里自強三路 3 號。</li>
+          <li>出口：新光三越站牌走 4 號，大遠百與自強三路方向走 1 號，一心二路站牌走 3 號，紅21 中山二路站牌走 2 號。</li>
+          <li>100、黃1、83：往 85 大樓方向。</li>
+          <li>70A、70B、70D、紅21：往新光路口或圖書總館，下車後步行到自強三路 3 號。</li>
+          <li>回三多模式追蹤 85 周邊往 R8 三多商圈方向的自強三路口與新光路口站牌。</li>
+          <li>已排除綠1，因為從三多商圈上車的方向不會先到 85 大樓。</li>
+        </ul>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="shuttlePanel" aria-labelledby="shuttleTabButton" hidden>
+      <section class="mode-toggle" aria-label="往後驛站方向">
+        <button class="mode-button active" id="commuteOutboundButton" type="button" data-commute-mode="outbound" aria-pressed="true">往後驛站</button>
+        <button class="mode-button" id="commuteReturnButton" type="button" data-commute-mode="return" aria-pressed="false">往高醫</button>
+      </section>
+
+      <section class="status-panel shuttle-status" aria-live="polite">
+        <div class="clock-row">
+          <span id="shuttleClock">--:--:--</span>
+          <span id="shuttleFreshness">固定時刻表</span>
+        </div>
+        <p class="decision-label" id="commuteLabel">高醫往後驛</p>
+        <h2 id="shuttleCountdown">--:--</h2>
+        <p class="time-summary" id="shuttleCountdownMeta">正在比較接駁車與公車</p>
+        <p class="decision-copy" id="shuttleCopy">正在計算哪個選項最快到後驛站。</p>
+        <div class="shuttle-route">
+          <div>
+            <span id="commuteStepOneLabel">出發</span>
+            <strong id="shuttleDepart">--:--</strong>
+          </div>
+          <div>
+            <span id="commuteStepTwoLabel">上車</span>
+            <strong id="shuttleMrt">--:--</strong>
+          </div>
+          <div>
+            <span id="commuteStepThreeLabel">抵達</span>
+            <strong id="shuttleArrive">--:--</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="board" aria-labelledby="shuttleBoardTitle">
+        <div class="section-heading">
+          <h2 id="shuttleBoardTitle">可選方案</h2>
+          <span id="shuttleSummary">接駁車 + 公車</span>
+        </div>
+        <div class="shuttle-list" id="shuttleList"></div>
+      </section>
+
+      <section class="details" aria-labelledby="shuttleDetailsTitle">
+        <h2 id="shuttleDetailsTitle">判斷方式</h2>
+        <ul>
+          <li>往後驛站模式比較啟川大樓接駁車與高醫、三民國中周邊公車到後驛站。</li>
+          <li>往高醫模式比較從後驛站回高醫或三民國中的接駁車與公車。</li>
+          <li>接駁車使用你提供的固定時刻表；公車使用即時到站資料。</li>
+        </ul>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="metroPanel" aria-labelledby="metroTabButton" hidden>
+      <section class="mode-toggle" aria-label="捷運方向">
+        <button class="mode-button active" id="metroToSanduoButton" type="button" data-metro-mode="toSanduo" aria-pressed="true">後驛→三多</button>
+        <button class="mode-button" id="metroToHouyiButton" type="button" data-metro-mode="toHouyi" aria-pressed="false">三多→後驛</button>
+      </section>
+
+      <section class="status-panel metro-status" aria-live="polite">
+        <div class="clock-row">
+          <span id="metroClock">--:--:--</span>
+          <span id="metroFreshness">高捷時刻估算</span>
+        </div>
+        <p class="decision-label" id="metroLabel">R12 後驛往 R8 三多</p>
+        <h2 id="metroCountdown">--:--</h2>
+        <p class="time-summary" id="metroMeta">下一班列車</p>
+        <p class="decision-copy" id="metroCopy">依高捷公開時刻表估算，實際到離站請以現場與高捷 e 遊行為準。</p>
+        <div class="shuttle-route">
+          <div>
+            <span id="metroStartLabel">起站</span>
+            <strong id="metroStart">--</strong>
+          </div>
+          <div>
+            <span>方向</span>
+            <strong id="metroDirection">--</strong>
+          </div>
+          <div>
+            <span>抵達</span>
+            <strong id="metroArrive">--:--</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="board" aria-labelledby="metroBoardTitle">
+        <div class="section-heading">
+          <h2 id="metroBoardTitle">接下來列車</h2>
+          <span id="metroSummary">紅線站間約 11 分</span>
+        </div>
+        <div class="shuttle-list" id="metroList"></div>
+      </section>
+
+      <section class="details" aria-labelledby="metroDetailsTitle">
+        <h2 id="metroDetailsTitle">資料來源</h2>
+        <ul>
+          <li>依高雄捷運各車站時刻表與站間行駛時間做離線估算。</li>
+          <li>R12 後驛與 R8 三多商圈站間行駛時間約 11 分鐘。</li>
+          <li>高捷公告建議提前 2-3 分鐘進站乘車；特殊日或颱風停班期間不適用。</li>
+        </ul>
+      </section>
+    </section>
+  </main>
+
+  <script src="runtime-config.js"></script>
+  <script src="app.js" defer></script>
+</body>
+
+</html>

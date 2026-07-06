@@ -1,0 +1,19 @@
+{
+  "name": "三多轉 85 公車",
+  "short_name": "三多85",
+  "description": "從捷運三多商圈站銜接公車到 85 大樓，並倒數高醫到後驛接駁車",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#f5f7f6",
+  "theme_color": "#0f766e",
+  "lang": "zh-Hant-TW",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

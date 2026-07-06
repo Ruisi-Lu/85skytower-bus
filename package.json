@@ -1,0 +1,24 @@
+{
+  "name": "sanduo-85-bus-pwa",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "config:web": "node scripts/generate-runtime-config.js --web",
+    "config:native": "node scripts/generate-runtime-config.js --native",
+    "dev": "npm run config:web && npx wrangler dev",
+    "deploy": "npm run config:web && npx wrangler deploy",
+    "check": "node --check public/app.js && node --check public/service-worker.js && node --check src/worker.js && node --check scripts/generate-runtime-config.js",
+    "cap:sync": "npm run config:native && npx cap sync",
+    "android:sync": "npm run config:native && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:build": "npm run android:sync && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/core": "^8.4.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.1"
+  }
+}

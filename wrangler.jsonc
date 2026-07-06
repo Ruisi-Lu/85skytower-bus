@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sanduo-85-bus",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-07-05",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "vars": {
+    "ALLOWED_ORIGINS": "http://localhost,http://localhost:5173,http://127.0.0.1:5173,http://localhost:8787,http://127.0.0.1:8787,https://localhost,capacitor://localhost"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

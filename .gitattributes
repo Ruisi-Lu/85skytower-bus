@@ -1,0 +1,4 @@
+*.bat binary
+*.sh text eol=lf
+*.png binary
+*.jar binary
