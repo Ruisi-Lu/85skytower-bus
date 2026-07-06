@@ -1676,7 +1676,7 @@ function toggleSettingsPanel() {
 
 function bindGestures() {
   document.addEventListener("touchstart", handleTouchStart, { passive: true });
-  document.addEventListener("touchmove", handleTouchMove, { passive: true });
+  document.addEventListener("touchmove", handleTouchMove, { passive: false });
   document.addEventListener("touchend", handleTouchEnd, { passive: true });
   document.addEventListener("touchcancel", resetGestureState, { passive: true });
 }
@@ -1709,11 +1709,10 @@ function handleTouchMove(event) {
   if (gestureState.lockAxis === "x") {
     const direction = deltaX < 0 ? 1 : -1;
     const nextIndex = TABS.indexOf(state.activeTab) + direction;
-    const hasTarget = nextIndex >= 0 && nextIndex < TABS.length;
-    const damped = deltaX * (hasTarget ? 0.28 : 0.08);
+    if (nextIndex >= 0 && nextIndex < TABS.length) {
+      event.preventDefault();
+    }
     gestureState.swiping = true;
-    els.appShell.classList.add("swiping");
-    els.appShell.style.setProperty("--swipe-x", `${clamp(damped, -42, 42)}px`);
     return;
   }
 
@@ -1754,8 +1753,7 @@ function resetGestureState() {
   gestureState.pulling = false;
   gestureState.pullReady = false;
   gestureState.lockAxis = "";
-  els.appShell.classList.remove("swiping", "pulling");
-  els.appShell.style.removeProperty("--swipe-x");
+  els.appShell.classList.remove("pulling");
   els.appShell.style.removeProperty("--pull-y");
 }
 

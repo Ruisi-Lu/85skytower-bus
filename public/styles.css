@@ -35,7 +35,6 @@ input {
 }
 
 .app-shell {
-  --swipe-x: 0px;
   --pull-y: 0px;
   width: min(760px, 100%);
   margin: 0 auto;
@@ -97,14 +96,10 @@ input {
 
 .tab-panel {
   transform: translateX(0);
-  transition: transform 0.18s ease;
+  transition: opacity 0.18s ease;
   backface-visibility: hidden;
-  will-change: transform;
-}
-
-.app-shell.swiping .tab-panel:not([hidden]) {
-  transform: translateX(var(--swipe-x));
-  transition: none;
+  touch-action: pan-y;
+  will-change: opacity;
 }
 
 .tab-panel.enter-from-right {
@@ -707,25 +702,25 @@ button:disabled {
 
 @keyframes tab-enter-right {
   from {
-    opacity: 0.72;
-    transform: translateX(28px);
+    opacity: 0.74;
+    transform: translateY(4px);
   }
 
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 
 @keyframes tab-enter-left {
   from {
-    opacity: 0.72;
-    transform: translateX(-28px);
+    opacity: 0.74;
+    transform: translateY(4px);
   }
 
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 
