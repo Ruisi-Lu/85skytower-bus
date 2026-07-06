@@ -7,6 +7,8 @@ const CACHE_KEY = "sanduo-85-last-snapshot";
 const SETTINGS_KEY = "sanduo-85-settings";
 const REFRESH_MS = 30_000;
 const TABS = ["bus", "shuttle", "metro"];
+const TAB_EXIT_MS = 120;
+const TAB_ENTER_MS = 220;
 const DESTINATION_LABEL = "85 大樓";
 const DESTINATION_ADDRESS = "高雄市苓雅區自強三路 3 號";
 const SHUTTLE_LOOKAHEAD_COUNT = 5;
@@ -714,6 +716,7 @@ const state = {
   loading: false,
   timer: null,
   settingsOpen: false,
+  tabAnimating: false,
   activeTab: "bus",
   busMode: "outbound",
   commuteMode: "outbound",
@@ -846,28 +849,71 @@ function tickClock() {
 function switchTab(tab, options = {}) {
   const previousTab = state.activeTab;
   const activeTab = TABS.includes(tab) ? tab : "bus";
+  const shouldAnimate = !options.replace && !prefersReducedMotion();
+  if (previousTab === activeTab) return;
+
+  if (state.tabAnimating && shouldAnimate) return;
+
+  if (!shouldAnimate) {
+    applyTab(activeTab);
+    updateTabUrl(activeTab, options);
+    return;
+  }
+
+  const previousPanel = panelForTab(previousTab);
+  const nextPanel = panelForTab(activeTab);
+  if (!previousPanel || !nextPanel) {
+    applyTab(activeTab);
+    updateTabUrl(activeTab, options);
+    return;
+  }
+
+  state.tabAnimating = true;
+  els.appShell.classList.add("tab-transitioning");
+  updateTabButtons(activeTab);
+  previousPanel.classList.add("leaving");
+
+  window.setTimeout(() => {
+    previousPanel.classList.remove("leaving");
+    applyTab(activeTab);
+    updateTabUrl(activeTab, options);
+    animateActivePanel(previousTab, activeTab, options.direction);
+
+    window.setTimeout(() => {
+      state.tabAnimating = false;
+      els.appShell.classList.remove("tab-transitioning");
+    }, TAB_ENTER_MS);
+  }, TAB_EXIT_MS);
+}
+
+function applyTab(activeTab) {
   state.activeTab = activeTab;
   els.busPanel.hidden = activeTab !== "bus";
   els.shuttlePanel.hidden = activeTab !== "shuttle";
   els.metroPanel.hidden = activeTab !== "metro";
+  updateTabButtons(activeTab);
+  if (activeTab === "metro") renderMetro();
+}
+
+function updateTabButtons(activeTab) {
   els.tabButtons.forEach((button) => {
     const isActive = button.dataset.tab === activeTab;
     button.classList.toggle("active", isActive);
     button.setAttribute("aria-selected", String(isActive));
   });
+}
 
-  if (!options.replace) {
-    animateActivePanel(previousTab, activeTab, options.direction);
-  }
-
+function updateTabUrl(activeTab, options = {}) {
   if (!options.replace) {
     const target = activeTab === "bus"
       ? `${window.location.pathname}${window.location.search}`
       : `#${activeTab}`;
     history.replaceState(null, "", target);
   }
+}
 
-  if (activeTab === "metro") renderMetro();
+function prefersReducedMotion() {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true;
 }
 
 function switchBusMode(mode) {

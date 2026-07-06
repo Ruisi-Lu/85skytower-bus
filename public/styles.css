@@ -88,6 +88,7 @@ input {
   background: var(--teal);
   color: #fff;
   box-shadow: 0 8px 16px rgba(15, 118, 110, 0.24);
+  transform: translateY(-1px);
 }
 
 .tab-button:active {
@@ -102,12 +103,20 @@ input {
   will-change: opacity;
 }
 
+.app-shell.tab-transitioning .tab-panel {
+  pointer-events: none;
+}
+
 .tab-panel.enter-from-right {
   animation: tab-enter-right 0.22s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .tab-panel.enter-from-left {
   animation: tab-enter-left 0.22s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.tab-panel.leaving {
+  animation: tab-leave 0.12s ease both;
 }
 
 .tab-panel[hidden] {
@@ -700,27 +709,53 @@ button:disabled {
   }
 }
 
+@keyframes tab-leave {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(3px) scale(0.995);
+  }
+}
+
 @keyframes tab-enter-right {
   from {
-    opacity: 0.74;
-    transform: translateY(4px);
+    opacity: 0;
+    transform: translateY(5px) scale(0.998);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 @keyframes tab-enter-left {
   from {
-    opacity: 0.74;
-    transform: translateY(4px);
+    opacity: 0;
+    transform: translateY(5px) scale(0.998);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-button,
+  .tab-panel,
+  .pull-refresh {
+    transition: none;
+  }
+
+  .tab-panel.enter-from-left,
+  .tab-panel.enter-from-right,
+  .tab-panel.leaving {
+    animation: none;
   }
 }
 
