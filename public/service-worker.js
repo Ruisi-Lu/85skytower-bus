@@ -1,4 +1,4 @@
-const CACHE_NAME = "sanduo-85-pwa-v17";
+const CACHE_NAME = "sanduo-85-pwa-v18";
 const ASSETS = [
   "./",
   "index.html",

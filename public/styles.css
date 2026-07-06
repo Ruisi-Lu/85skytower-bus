@@ -98,11 +98,12 @@ input {
 .tab-stage {
   position: relative;
   overflow-x: hidden;
+  isolation: isolate;
 }
 
 .tab-stage.animating {
   overflow: hidden;
-  transition: height 0.28s cubic-bezier(0.2, 0, 0, 1);
+  transition: height 0.32s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .tab-panel {
@@ -119,23 +120,31 @@ input {
   position: absolute;
   inset: 0;
   width: 100%;
-  will-change: transform, opacity;
+  will-change: transform;
+}
+
+.tab-stage .push-enter {
+  z-index: 2;
+}
+
+.tab-stage .push-leave {
+  z-index: 1;
 }
 
 .tab-stage.push-forward .push-leave {
-  animation: push-leave-forward 0.28s cubic-bezier(0.2, 0, 0, 1) both;
+  animation: push-leave-forward 0.32s cubic-bezier(0.2, 0, 0, 1) both;
 }
 
 .tab-stage.push-forward .push-enter {
-  animation: push-enter-forward 0.28s cubic-bezier(0.2, 0, 0, 1) both;
+  animation: push-enter-forward 0.32s cubic-bezier(0.2, 0, 0, 1) both;
 }
 
 .tab-stage.push-back .push-leave {
-  animation: push-leave-back 0.28s cubic-bezier(0.2, 0, 0, 1) both;
+  animation: push-leave-back 0.32s cubic-bezier(0.2, 0, 0, 1) both;
 }
 
 .tab-stage.push-back .push-enter {
-  animation: push-enter-back 0.28s cubic-bezier(0.2, 0, 0, 1) both;
+  animation: push-enter-back 0.32s cubic-bezier(0.2, 0, 0, 1) both;
 }
 
 .tab-panel[hidden] {
@@ -730,49 +739,41 @@ button:disabled {
 
 @keyframes push-enter-forward {
   from {
-    opacity: 0.94;
-    transform: translateX(104%) scale(0.985);
+    transform: translate3d(100%, 0, 0);
   }
 
   to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes push-leave-forward {
   from {
-    opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
 
   to {
-    opacity: 0.7;
-    transform: translateX(-34%) scale(0.985);
+    transform: translate3d(-100%, 0, 0);
   }
 }
 
 @keyframes push-enter-back {
   from {
-    opacity: 0.94;
-    transform: translateX(-104%) scale(0.985);
+    transform: translate3d(-100%, 0, 0);
   }
 
   to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes push-leave-back {
   from {
-    opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
 
   to {
-    opacity: 0.7;
-    transform: translateX(34%) scale(0.985);
+    transform: translate3d(100%, 0, 0);
   }
 }
 
